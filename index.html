@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+<title>Server Room Climate</title>
+
+<!-- Websocket -->
+<script type="text/javascript">
+
+// Config
+var port = 9000;
+//var host = "ws://192.168.104.61:"+port+"/ws"; // No need to change this if using localhost
+
+var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
+var host = ws_scheme + "://" + window.location.host + "/ws";
+
+
+//Declare Variables
+var socket;
+var explodedValues = [0,0,0,0]; //initial value for the plot = 0
+
+function init() {
+	try {
+		socket = new ReconnectingWebSocket(host);
+		console.log('WebSocket status '+socket.readyState);
+		socket.onopen    = function(msg) { 
+							   console.log("Welcome - status "+this.readyState); 
+						   };
+		socket.onmessage = function(msg) { 
+
+							   console.log("Message Received: "+msg.data);
+							   explodedValues = msg.data.split(';');
+							//console.log("Separate Values: "+explodedValues);
+							
+							//convert strings to numbers
+							for(var i=0; i<explodedValues.length; i++) { explodedValues[i] = +explodedValues[i]; } 
+							
+							drawVisualization();
+							
+						   };
+		socket.onclose   = function(msg) { 
+							   console.log("Disconnected - status "+this.readyState); 
+						   };
+	}
+	catch(ex){ 
+		console.log(ex); 
+	}
+	
+}
+
+function quit(){
+	if (socket != null) {
+		console.log("Close Socket");
+		socket.close();
+		socket=null;
+	}
+}
+
+function reconnect() {
+	quit();
+	init();
+}
+
+</script>
+
+
+<!-- Google Chart -->
+<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+<script type="text/javascript" src="{{ static_url("jquery-3.3.1.slim.min.js") }}"></script>
+<script type="text/javascript" src="{{ static_url("reconnecting-websocket.min.js") }}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+<script type="text/javascript">
+
+  function drawVisualization() {
+    // Create and populate the data table from the values received via websocket
+
+
+    var data_temp = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Celsius', explodedValues[0]]
+        ]);
+    var data_humi = google.visualization.arrayToDataTable([
+          ['Label', 'Value'],
+          ['Hum %', explodedValues[1]]
+        ]);
+
+
+    var options_temp = {
+          width: 400, height: 400,
+          redFrom: 30, redTo: 50,
+          yellowFrom:25, yellowTo: 30,
+          minorTicks: 5,
+          max: 50
+        };
+
+    var options_humi = {
+          width: 400, height: 400,
+          redFrom: 80, redTo: 100,
+          yellowFrom:70, yellowTo: 80,
+          minorTicks: 5,
+          max: 100
+        };
+    // Create and draw the plot
+
+    var chart_temp = new google.visualization.Gauge(document.getElementById('visualization1'));
+    var chart_humi = new google.visualization.Gauge(document.getElementById('visualization2'));
+
+
+    
+    var runOnce = google.visualization.events.addListener(chart_temp, 'ready', function () {
+        google.visualization.events.removeListener(runOnce);
+        chart_temp.draw(data_temp, options_temp);
+    });
+    
+    chart_temp.draw(data_temp, options_temp);
+    chart_humi.draw(data_humi, options_humi);
+    
+    // you can handle the resizing here - no need to recreate your data and charts from scratch
+    $(window).resize(function() {
+        chart_temp.draw(data_temp, options_temp);
+        chart_humi.draw(data_humi, options_humi);
+    });
+}
+google.load('visualization', '1', {packages: ['gauge'], callback: drawVisualization});
+
+  </script>
+
+
+
+  </head>
+  <body onload="init()">
+    <div class="container">
+        <h3>Server Room Climate Monitor</h3>
+        <div class="row">
+                <div id="visualization1"></div>
+                <div id="visualization2"></div>
+        </div>
+    </div>
+  </body>
+</html>
