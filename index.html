@@ -15,7 +15,6 @@
 
 // Config
 var port = 9000;
-//var host = "ws://192.168.104.61:"+port+"/ws"; // No need to change this if using localhost
 
 var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
 var host = ws_scheme + "://" + window.location.host + "/ws";
@@ -37,11 +36,12 @@ function init() {
 							   console.log("Message Received: "+msg.data);
 							   explodedValues = msg.data.split(';');
 							//console.log("Separate Values: "+explodedValues);
-							
-							//convert strings to numbers
-							for(var i=0; i<explodedValues.length; i++) { explodedValues[i] = +explodedValues[i]; } 
+							//convert first two strings to numbers
+
+                            for(var i=0; i<2; i++) { explodedValues[i] = +explodedValues[i]; }
 							
 							drawVisualization();
+							fillTimeTicker();
 							
 						   };
 		socket.onclose   = function(msg) { 
@@ -72,7 +72,7 @@ function reconnect() {
 
 <!-- Google Chart -->
 <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-<script type="text/javascript" src="{{ static_url("jquery-3.3.1.slim.min.js") }}"></script>
+<script type="text/javascript" src="{{ static_url("jquery-3.3.1.min.js") }}"></script>
 <script type="text/javascript" src="{{ static_url("reconnecting-websocket.min.js") }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
@@ -123,13 +123,33 @@ function reconnect() {
     
     chart_temp.draw(data_temp, options_temp);
     chart_humi.draw(data_humi, options_humi);
-    
+
     // you can handle the resizing here - no need to recreate your data and charts from scratch
     $(window).resize(function() {
         chart_temp.draw(data_temp, options_temp);
         chart_humi.draw(data_humi, options_humi);
     });
 }
+
+function fillTimeTicker(){
+      $('<tr id='+explodedValues[2]+'><td>'+explodedValues[2]+'</td>' +
+         '<td>'+explodedValues[0]+'&deg;C</td>'+
+         '<td>'+explodedValues[1]+'%</td>'+
+          '</tr>')
+                .hide()
+                .prependTo('#ticker tbody')
+                .fadeIn("slow");
+
+
+    if($('#ticker tbody tr').length > 3) {
+        $('#ticker tbody tr:last').remove();
+    }
+
+
+
+}
+
+
 google.load('visualization', '1', {packages: ['gauge'], callback: drawVisualization});
 
   </script>
@@ -143,6 +163,24 @@ google.load('visualization', '1', {packages: ['gauge'], callback: drawVisualizat
         <div class="row">
                 <div id="visualization1"></div>
                 <div id="visualization2"></div>
+        </div>
+
+        <div class="row">
+            <table id="ticker" class="table table-sm">
+                <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Temperature</th>
+                    <th>Humidity</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+
+                </tr>
+
+                </tbody>
+            </table>
         </div>
     </div>
   </body>

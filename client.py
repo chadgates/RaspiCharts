@@ -16,6 +16,7 @@ import math
 import logging
 import os
 import time
+import datetime
 
 DHT_SENSOR_TYPE = 0
 DHT_SENSOR_PORT = 3
@@ -52,7 +53,10 @@ class Client(object):
         self.ws = None
         self.connect()
         PeriodicCallback(self.keep_alive, MILLISECONDS_BETWEEN_READS, io_loop=self.ioloop).start()
-        self.ioloop.start()
+        try:
+            self.ioloop.start()
+        except KeyboardInterrupt:
+            print("Client stopped -> CTRL+C pressed")
 
     @gen.coroutine
     def connect(self):
@@ -85,6 +89,7 @@ class Client(object):
             self.connect()
         else:
             try:
+                timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 if RUN_MODE == 'PRODUCTION':
                     [temp_c, hum] = grovepi.dht(DHT_SENSOR_PORT, DHT_SENSOR_TYPE)
                     if isFloat(temp_c):
@@ -92,11 +97,11 @@ class Client(object):
 
                     if ((isFloat(hum)) and (hum > 0)):
                         logging.info("Humidity (%) = " + str(hum))
-                        self.ws.write_message(str(temp_c) + ";" + str(hum) + ";0;0")
+                        self.ws.write_message(str(temp_c) + ";" + str(hum) + ";" + timestamp)
                 elif RUN_MODE == 'DEVELOPMENT':
                     temp_c = randint(15,30)
                     hum = randint(25,80)
-                    self.ws.write_message(str(temp_c) + ";" + str(hum) + ";0;0")
+                    self.ws.write_message(str(temp_c) + ";" + str(hum) + ";" + timestamp)
                 elif RUN_MODE == 'ALERT':
                     ALERTWAIT = 10
                     ALERTRESEND = 30
@@ -107,8 +112,7 @@ class Client(object):
                     else:
                         temp_c = 25
                         hum = 40
-
-                    self.ws.write_message(str(temp_c) + ";" + str(hum) + ";0;0")
+                    self.ws.write_message(str(temp_c) + ";" + str(hum) + ";" + timestamp)
                 else:
                     logging.error("Unknown RUN_MODE:" + RUN_MODE)
 
@@ -127,10 +131,13 @@ class Client(object):
                         logging.info("Alert resend")
                         send_alert_by_mail(temp_c, hum, 'ALARM')
 
-                if temp_c < TEMP_THRESHOLD and hum < HUMI_THRESHOLD and ALERTSTATE=='Red':
+                if temp_c < TEMP_THRESHOLD and hum < HUMI_THRESHOLD:
+                    if ALERTSTATE == 'Red':
                         logging.info("Alert removed - Status back normal")
                         send_alert_by_mail(temp_c, hum, 'Normal')
                         ALERTSTATE = 'Green'
+                        REPORTTIME = None
+                    else:
                         REPORTTIME = None
 
 
