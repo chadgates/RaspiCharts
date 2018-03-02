@@ -12,7 +12,7 @@ is some customization still missing in this documentation on how to do this at s
 
 To install, git clone this repository as follows: 
 
-    sudo git clone https://github.com/chadgates/RaspiCharts /usr/local/bin 
+    sudo git clone https://github.com/chadgates/RaspiCharts /usr/local/bin/RaspiCharts
     sudo pip install -r /usr/local/bin/requirements.txt
 
     
@@ -28,7 +28,7 @@ Add following to file:
     
     [Service]
     Type=idle
-    ExecStart=/usr/bin/python /usr/local/bin/RaspiCharts/server.py > /var/log/climateserver.log
+    ExecStart=/usr/bin/python /usr/local/bin/RaspiCharts/server.py
     
     [Install]
     WantedBy=multi-user.target
@@ -58,7 +58,7 @@ Add following to the file and fill in the environment variables:
     Environment="EMAIL_SERVER="
     Environment="RUN_MODE=PRODUCTION"
     
-    ExecStart=/usr/bin/python /usr/local/bin/RaspiCharts/client.py > /var/log/climateclient.log
+    ExecStart=/usr/bin/python /usr/local/bin/RaspiCharts/client.py
     
     [Install]
     WantedBy=multi-user.target
@@ -72,3 +72,9 @@ And enable it:
 Then reboot the RaspberryPi
     
     sudo reboot
+
+
+To check the output of the logs: 
+
+    sudo journalctl -u climateserver.service
+    sudo journalctl -u climateclient.service

@@ -96,10 +96,10 @@ class Client(object):
                 if RUN_MODE == 'PRODUCTION':
                     [temp_c, hum] = grovepi.dht(DHT_SENSOR_PORT, DHT_SENSOR_TYPE)
                     if isFloat(temp_c):
-                        logging.info("Temperature (C) = " + str(temp_c))
+                        logging.debug("Temperature (C) = " + str(temp_c))
 
                     if ((isFloat(hum)) and (hum > 0)):
-                        logging.info("Humidity (%) = " + str(hum))
+                        logging.debug("Humidity (%) = " + str(hum))
                         self.ws.write_message(str(temp_c) + ";" + str(hum) + ";" + timestamp)
                 elif RUN_MODE == 'DEVELOPMENT':
                     temp_c = randint(15,30)
