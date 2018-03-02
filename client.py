@@ -17,6 +17,7 @@ import logging
 import os
 import time
 import datetime
+import sys
 
 DHT_SENSOR_TYPE = 0
 DHT_SENSOR_PORT = 3
@@ -34,6 +35,8 @@ HUMI_THRESHOLD = 80
 ALERTWAIT = 300
 ALERTRESEND = 3600
 ALERTCOUNT = 0
+
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 def isFloat(string):
     try:
@@ -172,5 +175,9 @@ def send_alert_by_mail(temperature, humidity, alerttype):
 
 
 if __name__ == "__main__":
+    logging.info("Starting Climate Client")
     logging.info("Mode is:" + RUN_MODE)
+    logging.info("EMail Sender:" + EMAIL_SENDER)
+    logging.info("EMail Receiver:" + EMAIL_RECEIVER)
+    logging.info("EMail Server:" + EMAIL_SERVER)
     client = Client("ws://127.0.0.1:9000/ws", 5)

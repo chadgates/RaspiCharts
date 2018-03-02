@@ -45,7 +45,7 @@ Then do the same for the client:
 
     sudo nano /lib/systemd/system/climateserver.service
 
-Add following to the file: 
+Add following to the file and fill in the environment variables: 
     
     [Unit]
     Description=Climate Client
@@ -53,6 +53,11 @@ Add following to the file:
     
     [Service]
     Type=idle
+    Environment="EMAIL_SENDER="
+    Environment="EMAIL_RECEIVER="
+    Environment="EMAIL_SERVER="
+    Environment="RUN_MODE=PRODUCTION"
+    
     ExecStart=/usr/bin/python /usr/local/bin/RaspiCharts/client.py > /var/log/climateclient.log
     
     [Install]

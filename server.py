@@ -10,11 +10,13 @@ import tornado.web
 import os
 import time
 import logging
+import sys
 
 
 # Config
 port = 9000  # Websocket Port
 timeInterval = 2000  # Milliseconds
+logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 
 class IndexHandler(tornado.web.RequestHandler):
@@ -41,7 +43,7 @@ class WSHandler(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         WSHandler.update_cache(message)
         WSHandler.send_updates(message)
-        logging.info(message)
+        logging.debug(message)
 
     def on_close(self):
         WSHandler.waiters.remove(self)
@@ -73,6 +75,7 @@ application = tornado.web.Application(
     static_path=os.path.join(os.path.dirname(__file__), "static"), )
 
 if __name__ == "__main__":
+    logging.info("Starting Climate Server")
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(port)
     try:
