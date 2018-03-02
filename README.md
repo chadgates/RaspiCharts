@@ -1,6 +1,20 @@
+This is a monitor for a server room using a RaspberryPi Zero with a GrovePi Temperatur Sensor.
+A websocket webserver serves webbrowsers via port 9000. A client process polls the temperatur and
+humidity every 5 seconds and pushes them to server. 
+
+
+
+Some alarm settings in the client allow e-mail to be sent based on environment variables. There
+is some customization still missing in this documentation on how to do this at start....
+
+![Browser Front End](/img/webfrontend.png)
+
+
 To install, git clone this repository as follows: 
 
     sudo git clone https://github.com/chadgates/RaspiCharts /usr/local/bin 
+    sudo pip install -r /usr/local/bin/requirements.txt
+
     
 Then add service to systemd as follows: 
 
