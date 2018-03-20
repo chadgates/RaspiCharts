@@ -36,6 +36,12 @@ ALERTWAIT = 300
 ALERTRESEND = 3600
 ALERTCOUNT = 0
 
+
+READERSTATE = 'Green'
+READERTIME = None
+
+
+
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
 
 def isFloat(string):
@@ -87,6 +93,8 @@ class Client(object):
         global ALERTWAIT
         global ALERTRESEND
         global ALERTCOUNT
+        global READERTIME
+        global READERSTATE
 
         if self.ws is None:
             self.connect()
@@ -97,6 +105,17 @@ class Client(object):
                     [temp_c, hum] = grovepi.dht(DHT_SENSOR_PORT, DHT_SENSOR_TYPE)
                     if isFloat(temp_c):
                         logging.debug("Temperature (C) = " + str(temp_c))
+
+                        if READERSTATE != 'Green':
+                            READERSTATE = 'Green'
+                            READERTIME = None
+                            logging.info("Reader state alert removed - Status back normal")
+                    else:
+                        if READERSTATE == 'Green':
+                            READERSTATE = 'Yellow'
+                            logging.info("Reader state changed to Yello")
+                        if not READERTIME:
+                            READERTIME = time.time()
 
                     if ((isFloat(hum)) and (hum > 0)):
                         logging.debug("Humidity (%) = " + str(hum))
@@ -143,6 +162,16 @@ class Client(object):
                     else:
                         REPORTTIME = None
 
+                if (time.time() - READERTIME) >= ALERTWAIT and READERSTATE == 'Yellow':
+                    logging.info("Reader Alert raised")
+                    send_alert_by_mail(0, 0, 'READER ALARM')
+                    READERSTATE = 'Red'
+                    logging.info("Reader state changed to Red")
+
+                if (time.time() - READERTIME) >= ALERTRESEND and READERSTATE == 'Red':
+                    logging.info("Reader Alert resend")
+                    send_alert_by_mail(0, 0, 'READER ALARM RESEND')
+                    logging.info("Reader state changed to Red")
 
             except IOError:
                 logging.error("IO Error when trying to keep alive")
