@@ -162,16 +162,17 @@ class Client(object):
                     else:
                         REPORTTIME = None
 
-                if (time.time() - READERTIME) >= ALERTWAIT and READERSTATE == 'Yellow':
-                    logging.info("Reader Alert raised")
-                    send_alert_by_mail(0, 0, 'READER ALARM')
-                    READERSTATE = 'Red'
-                    logging.info("Reader state changed to Red")
+                if READERTIME:
+                    if (time.time() - READERTIME) >= ALERTWAIT and READERSTATE == 'Yellow':
+                        logging.info("Reader Alert raised")
+                        send_alert_by_mail(0, 0, 'READER ALARM')
+                        READERSTATE = 'Red'
+                        logging.info("Reader state changed to Red")
 
-                if (time.time() - READERTIME) >= ALERTRESEND and READERSTATE == 'Red':
-                    logging.info("Reader Alert resend")
-                    send_alert_by_mail(0, 0, 'READER ALARM RESEND')
-                    logging.info("Reader state changed to Red")
+                    if (time.time() - READERTIME) >= ALERTRESEND and READERSTATE == 'Red':
+                        logging.info("Reader Alert resend")
+                        send_alert_by_mail(0, 0, 'READER ALARM RESEND')
+                        logging.info("Reader state changed to Red")
 
             except IOError:
                 logging.error("IO Error when trying to keep alive")
