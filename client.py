@@ -135,6 +135,27 @@ class Client(object):
                         temp_c = 25
                         hum = 40
                     self.ws.write_message(str(temp_c) + ";" + str(hum) + ";" + timestamp)
+                elif RUN_MODE == 'READERALERT':
+                    [temp_c, hum] = float('nan'), float('nan')
+                    if isFloat(temp_c):
+                        logging.debug("Temperature (C) = " + str(temp_c))
+
+                        if READERSTATE != 'Green':
+                            READERSTATE = 'Green'
+                            READERTIME = None
+                            logging.info("Reader state alert removed - Status back normal")
+                    else:
+                        if READERSTATE == 'Green':
+                            READERSTATE = 'Yellow'
+                            logging.info("Reader state changed to Yello")
+                        if not READERTIME:
+                            READERTIME = time.time()
+
+                    if ((isFloat(hum)) and (hum > 0)):
+                        logging.debug("Humidity (%) = " + str(hum))
+                        self.ws.write_message(str(temp_c) + ";" + str(hum) + ";" + timestamp)
+
+
                 else:
                     logging.error("Unknown RUN_MODE:" + RUN_MODE)
 

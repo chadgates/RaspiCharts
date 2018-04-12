@@ -82,3 +82,30 @@ To check the output of the logs:
 
     sudo journalctl -u climateserver.service
     sudo journalctl -u climateclient.service
+    
+
+## Add cronjob to reset the GrovePi at midnight
+
+This may be required as after a while (usually after about 1 week), no more 
+valid results are received. 
+Issue discussed also here: https://forum.dexterindustries.com/t/grove-pi-rst/743/6
+
+Therefore decided to add a cron job to reset once every day: 
+
+Run crontab with -e flag to edit the cron table: 
+
+    crontab -e
+ 
+Select and editor (if this is the first time).
+ 
+Add a scheduled task
+
+     0 0 * * * /usr/bin/avrdude -c gpio -p m328p
+
+
+## E-Mail Server Test
+
+To run an email server test, run
+    
+    python testmail.py
+   
