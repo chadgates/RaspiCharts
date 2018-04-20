@@ -35,11 +35,12 @@ HUMI_THRESHOLD = 80
 ALERTWAIT = 300
 ALERTRESEND = 3600
 ALERTCOUNT = 0
+RESENDCOUNT = 0
 
 
 READERSTATE = 'Green'
 READERTIME = None
-
+READERRESENDCOUNT = 0
 
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO)
@@ -95,6 +96,8 @@ class Client(object):
         global ALERTCOUNT
         global READERTIME
         global READERSTATE
+        global RESENDCOUNT
+        global READERRESENDCOUNT
 
         if self.ws is None:
             self.connect()
@@ -170,9 +173,10 @@ class Client(object):
                         ALERTSTATE = 'Red'
                         send_alert_by_mail(temp_c, hum, 'ALARM')
 
-                    if ALERTSTATE == 'Red' and (time.time() - REPORTTIME) >= ALERTRESEND:
+                    if ALERTSTATE == 'Red' and (time.time() - REPORTTIME) >= (ALERTRESEND * (RESENDCOUNT+1)):
                         logging.info("Alert resend")
                         send_alert_by_mail(temp_c, hum, 'ALARM')
+                        RESENDCOUNT += 1
 
                 if temp_c < TEMP_THRESHOLD and hum < HUMI_THRESHOLD:
                     if ALERTSTATE == 'Red':
@@ -180,6 +184,7 @@ class Client(object):
                         send_alert_by_mail(temp_c, hum, 'Normal')
                         ALERTSTATE = 'Green'
                         REPORTTIME = None
+                        RESENDCOUNT = 0
                     else:
                         REPORTTIME = None
 
@@ -190,10 +195,11 @@ class Client(object):
                         READERSTATE = 'Red'
                         logging.info("Reader state changed to Red")
 
-                    if (time.time() - READERTIME) >= ALERTRESEND and READERSTATE == 'Red':
+                    if (time.time() - READERTIME) >= (ALERTRESEND * (READERRESENDCOUNT+1)) and READERSTATE == 'Red':
                         logging.info("Reader Alert resend")
                         send_alert_by_mail(0, 0, 'READER ALARM RESEND')
                         logging.info("Reader state changed to Red")
+                        READERRESENDCOUNT += 1
 
             except IOError:
                 logging.error("IO Error when trying to keep alive")
